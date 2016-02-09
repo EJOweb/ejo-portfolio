@@ -1,0 +1,14 @@
+.form-table {
+	width: 580px;
+}
+
+.form-table th label {
+	display: block;
+	width: 180px;
+}
+
+.form-table td input,
+.form-table td textarea,
+.form-table td select {
+	width: 400px;
+}
