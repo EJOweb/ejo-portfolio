@@ -3,7 +3,7 @@
  * Plugin Name:         EJO Portfolio
  * Plugin URI:          http://github.com/ejoweb/ejo-portfolio
  * Description:         Portfolio, the EJOweb way. 
- * Version:             0.1
+ * Version:             0.2
  * Author:              Erik Joling
  * Author URI:          http://www.ejoweb.nl/
  *
@@ -16,9 +16,17 @@ define( 'EJO_PORTFOLIO_PLUGIN_DIR', trailingslashit( plugin_dir_path( __FILE__ )
 define( 'EJO_PORTFOLIO_PLUGIN_URL', trailingslashit( plugin_dir_url( __FILE__ ) ) );
 
 /* Load classes */
-include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'inc/helpers.php' );
-include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'inc/metabox-class.php' );
-include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'inc/settings-class.php' );
+include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'includes/metabox-class.php' );
+include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'includes/settings-class.php' );
+
+/* Portfolio */
+EJO_Portfolio::init();
+
+/* Metabox */
+EJO_Portfolio_Metabox::init();
+
+/* Settings */
+EJO_Portfolio_Settings::init();
 
 /**
  *
@@ -26,7 +34,7 @@ include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'inc/settings-class.php' );
 final class EJO_Portfolio
 {
 	/* Version number of this plugin */
-	public static $version = '0.1';
+	public static $version = '0.2';
 
 	/* Holds the instance of this class. */
 	private static $_instance = null;
@@ -49,14 +57,32 @@ final class EJO_Portfolio
 	/* Plugin setup. */
 	protected function __construct() 
 	{
-		// /* Register Post Type */
+		/* Load Helper Functions */
+        add_action( 'plugins_loaded', array( $this, 'helper_functions' ), 1 );
+
+		/* Add Theme Features */
+        add_action( 'after_setup_theme', array( $this, 'theme_features' ) );
+
+		/* Register Post Type */
 		add_action( 'init', array( $this, 'register_portfolio_post_type' ) );
+	}
 
-		/* Metabox */
-		EJO_Portfolio_Metabox::init();
+    /* Add helper functions */
+    public function helper_functions() 
+    {
+        /* Use this function to filter custom theme support with arguments */
+        include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'includes/theme-support-arguments.php' );
 
-		/* Settings */
-		EJO_Portfolio_Settings::init();
+        /* Helper functions */
+		include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'includes/helpers.php' );
+    }
+
+
+    /* Add Features */
+    public function theme_features() 
+    {	
+		/* Allow arguments to be passed for theme-support */
+		add_filter( 'current_theme_supports-ejo-portfolio', 'ejo_theme_support_arguments', 10, 3 );
 	}
 
 	/* Register Post Type */
@@ -83,7 +109,7 @@ final class EJO_Portfolio
 				'menu_position'       => 26,
 				'menu_icon'           => 'dashicons-portfolio',
 				'public'              => true,
-				'exclude_from_search' => true,
+				'exclude_from_search' => false,
 				'has_archive'         => $archive_slug,
 
 				/* The rewrite handles the URL structure. */
@@ -131,4 +157,3 @@ final class EJO_Portfolio
 	}
 }
 
-EJO_Portfolio::init();
