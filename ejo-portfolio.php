@@ -92,7 +92,7 @@ final class EJO_Portfolio
 		$portfolio_settings = get_option( 'portfolio_settings', array() );
 
 		/* Archive title */
-		// $title = (isset($portfolio_settings['title'])) ? $portfolio_settings['title'] : 'Projects';
+		$title = (isset($portfolio_settings['title'])) ? $portfolio_settings['title'] : self::$post_type_archive;
 
 		/* Archive description */
 		$description = (isset($portfolio_settings['description'])) ? $portfolio_settings['description'] : '';
@@ -130,7 +130,7 @@ final class EJO_Portfolio
 
 				/* Labels used when displaying the posts. */
 				'labels' => array(
-					'name'               => __( 'Projects',                   'ejo-portfolio' ),
+					'name'               => $title,
 					'singular_name'      => __( 'Project',                    'ejo-portfolio' ),
 					'menu_name'          => __( 'Portfolio',                  'ejo-portfolio' ),
 					'name_admin_bar'     => __( 'Portfolio Project',          'ejo-portfolio' ),
