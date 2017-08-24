@@ -1,35 +1,66 @@
 <?php
 
+/* Metabox */
+EJO_Portfolio_Metabox::init();
+
 /**
  *
  */
-class EJO_Portfolio_Metabox 
+final class EJO_Portfolio_Metabox 
 {
+	// public static $default_meta;
+	public static $default_meta = array(
+		'url',
+		'client',
+		'start-date',
+		'end-date',
+		'location'
+	);
+
 	/* Holds the instance of this class. */
 	private static $_instance;
 
-	/* Plugin setup. */
-	public function __construct() 
+	/* Returns the instance. */
+	public static function init() 
 	{
+		if ( !self::$_instance )
+			self::$_instance = new self;
+
+		return self::$_instance;
+	}
+
+	/* Plugin setup. */
+	private function __construct() 
+	{
+		// self::$default_meta = array(
+		// 	'url',
+		// 	'client',
+		// 	'start-date',
+		// 	'end-date',
+		// 	'location'
+		// );
+
 		/* Add Referentie Metabox */
-		add_action( 'add_meta_boxes_portfolio_project', array( $this, 'add_portfolio_metabox' ) );
+		add_action( 'add_meta_boxes_portfolio_project', array( 'EJO_Portfolio_Metabox', 'add_portfolio_metabox' ) );
 
 		/* Save Referentie Metadata */
-		add_action( 'save_post', array( $this, 'save_portfolio_metadata' ) );
+		add_action( 'save_post', array( 'EJO_Portfolio_Metabox', 'save_portfolio_metadata' ) );
 	}
 
 	/* */
-	public function add_portfolio_metabox() 
+	public static function add_portfolio_metabox() 
 	{
-		/* Check if theme supports portfolio client */
-		if ( !current_theme_supports( 'ejo-portfolio' ) )
+		$portfolio_meta = apply_filters('ejo_portfolio_meta', self::$default_meta);
+
+		if (empty($portfolio_meta)) {
 			return;
+		}
 
 		/* Add meta_box */
 		add_meta_box( 
 			'portfolio_metabox', 
 			'Portfolio Informatie', 
-			array( $this, 'render_portfolio_metabox' ), 
+			array( 'EJO_Portfolio_Metabox', 'render_portfolio_metabox' ), 
 			'portfolio_project', 
 			'normal', 
 			'high' 
@@ -37,29 +68,31 @@ class EJO_Portfolio_Metabox
 	}
 
 	/* */
-	public function render_portfolio_metabox( $post )
+	public static function render_portfolio_metabox( $post )
 	{
 		// Noncename needed to verify where the data originated
 		wp_nonce_field( 'portfolio-metabox-' . $post->ID, 'portfolio-meta-nonce' );
 
+		$portfolio_meta = apply_filters('ejo_portfolio_meta', self::$default_meta);
+
 		/* Check if theme supports portfolio url */
-		if ( current_theme_supports( 'ejo-portfolio', 'url' ) )
+		if ( in_array('url', $portfolio_meta ) )
 			$project_url = get_post_meta( $post->ID, 'url', true );
 
 		/* Check if theme supports portfolio client */
-		if ( current_theme_supports( 'ejo-portfolio', 'client' ) )
+		if ( in_array('client', $portfolio_meta ) )
 			$project_client = get_post_meta( $post->ID, 'client', true );
 
 		/* Check if theme supports portfolio start-date */
-		if ( current_theme_supports( 'ejo-portfolio', 'start-date' ) )
+		if ( in_array('start-date', $portfolio_meta ) )
 			$project_start_date = get_post_meta( $post->ID, 'start_date', true );
 
 		/* Check if theme supports portfolio end-date */
-		if ( current_theme_supports( 'ejo-portfolio', 'end-date' ) )
+		if ( in_array('end-date', $portfolio_meta ) )
 			$project_end_date = get_post_meta( $post->ID, 'end_date', true );
 
 		/* Check if theme supports portfolio location */
-		if ( current_theme_supports( 'ejo-portfolio', 'location' ) )
+		if ( in_array('location', $portfolio_meta ) )
 			$project_location = get_post_meta( $post->ID, 'location', true );
 		?>
 
@@ -161,8 +194,14 @@ class EJO_Portfolio_Metabox
 	}
 
 	// Manage saving Metabox Data
-	public function save_portfolio_metadata($post_id) 
-	{
+	public static function save_portfolio_metadata($post_id) 
+	{	
+		$portfolio_meta = apply_filters('ejo_portfolio_meta', self::$default_meta);
+
+		if (empty($portfolio_meta)) {
+			return;
+		}
+
 		/* Don't try to save the data under autosave, ajax, or future post. */
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 			return;
@@ -202,14 +241,5 @@ class EJO_Portfolio_Metabox
 		/* Location */
 		if ( isset( $_POST['project-location'] ) )
 			update_post_meta( $post_id, 'location', $_POST['project-location'] );
-	}
-
-	/* Returns the instance. */
-	public static function init() 
-	{
-		if ( !self::$_instance )
-			self::$_instance = new self;
-
-		return self::$_instance;
 	}
 }

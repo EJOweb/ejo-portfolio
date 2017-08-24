@@ -1,25 +1,39 @@
 <?php
 
-class EJO_Portfolio_Settings 
+/* Settings */
+EJO_Portfolio_Settings::init();
+
+/**
+ *
+ */
+final class EJO_Portfolio_Settings 
 {
 	/* Holds the instance of this class. */
 	private static $_instance;
 
+	/* Returns the instance. */
+	public static function init() 
+	{
+		if ( !self::$_instance )
+			self::$_instance = new self;
+		return self::$_instance;
+	}
+
 	/* Plugin setup. */
-	public function __construct() 
+	private function __construct() 
 	{
 		/* Add Settings Page */
-		add_action( 'admin_menu', array( $this, 'add_portfolio_setting_menu' ) );
+		add_action( 'admin_menu', array( 'EJO_Portfolio_Settings', 'add_portfolio_setting_menu' ) );
 
 		/* Register Settings for Settings Page */
-		add_action( 'admin_init', array( $this, 'initialize_portfolio_settings' ) );
+		add_action( 'admin_init', array( 'EJO_Portfolio_Settings', 'initialize_portfolio_settings' ) );
 
 		/* Save settings (before init, because post type registers on init) */
 		/* I probably should be using Settings API.. */
-		add_action( 'init', array( $this, 'save_portfolio_settings' ), 1 );
+		add_action( 'init', array( 'EJO_Portfolio_Settings', 'save_portfolio_settings' ), 1 );
 
 		/* Add scripts to settings page */
-		add_action( 'admin_enqueue_scripts', array( $this, 'add_scripts_and_styles' ) ); 
+		add_action( 'admin_enqueue_scripts', array( 'EJO_Portfolio_Settings', 'add_scripts_and_styles' ) ); 
 	}
 
 	/***********************
@@ -27,7 +41,7 @@ class EJO_Portfolio_Settings
 	 ***********************/
 
 	/* */
-	public function add_portfolio_setting_menu()
+	public static function add_portfolio_setting_menu()
 	{
 		add_submenu_page( 
 			"edit.php?post_type=".EJO_Portfolio::$post_type, 
@@ -35,12 +49,12 @@ class EJO_Portfolio_Settings
 			'Instellingen', 
 			'edit_theme_options', 
 			'portfolio-settings', 
-			array( $this, 'portfolio_settings_page' ) 
+			array( 'EJO_Portfolio_Settings', 'portfolio_settings_page' ) 
 		);
 	}
 
 	/* Register settings */
-	public function initialize_portfolio_settings() 
+	public static function initialize_portfolio_settings() 
 	{
 		// Add option if not already available
 		if( false == get_option( 'portfolio_settings' ) ) {  
@@ -49,7 +63,7 @@ class EJO_Portfolio_Settings
 	}
 
 	/* Save portfolio settings */
-	public function save_portfolio_settings()
+	public static function save_portfolio_settings()
 	{
 		if (isset($_POST['submit']) && !empty($_POST['portfolio-settings']) ) :
 
@@ -66,7 +80,7 @@ class EJO_Portfolio_Settings
 	}
 
 	/* */
-	public function portfolio_settings_page()
+	public static function portfolio_settings_page()
 	{
 	?>
 		<div class='wrap' style="max-width:960px;">
@@ -97,7 +111,7 @@ class EJO_Portfolio_Settings
 	}
 
 
-    public function show_portfolio_settings() 
+    public static function show_portfolio_settings() 
     {	
     	/* Get post type object */
     	$portfolio_project_post_type = get_post_type_object( EJO_Portfolio::$post_type );
@@ -172,25 +186,17 @@ class EJO_Portfolio_Settings
     }
 
 	/* Manage admin scripts and stylesheets */
-	public function add_scripts_and_styles()
+	public static function add_scripts_and_styles()
 	{
 		/* Settings Page */
 		if (isset($_GET['page']) && $_GET['page'] == 'portfolio-settings') :
 
 			/* Settings page javascript */
-			wp_enqueue_script( 'portfolio-admin-settings-page-js', EJO_PORTFOLIO_PLUGIN_URL . 'js/admin-settings-page.js', array('jquery'));
+			wp_enqueue_script( 'portfolio-admin-settings-page-js', EJO_PORTFOLIO::$uri . 'js/admin-settings-page.js', array('jquery'));
 
 			/* Settings page stylesheet */
-			wp_enqueue_style( 'portfolio-admin-settings-page-css', EJO_PORTFOLIO_PLUGIN_URL . 'css/admin-settings-page.css' );
+			wp_enqueue_style( 'portfolio-admin-settings-page-css', EJO_PORTFOLIO::$uri . 'css/admin-settings-page.css' );
 
 		endif;
-	}
-
-	/* Returns the instance. */
-	public static function init() 
-	{
-		if ( !self::$_instance )
-			self::$_instance = new self;
-		return self::$_instance;
 	}
 }

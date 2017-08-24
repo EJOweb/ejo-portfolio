@@ -7,26 +7,12 @@
  * Author:              Erik Joling
  * Author URI:          http://www.ejoweb.nl/
  *
- * GitHub Plugin URI:   https://github.com/EJOweb/ejo-portfolio
- * GitHub Branch:       master
+ * GitHub Plugin URI:   https://github.com/erikjoling/ejo-portfolio
+ * GitHub Branch:       dev 
  */
-
-// Store directory path of this plugin
-define( 'EJO_PORTFOLIO_PLUGIN_DIR', trailingslashit( plugin_dir_path( __FILE__ ) ) );
-define( 'EJO_PORTFOLIO_PLUGIN_URL', trailingslashit( plugin_dir_url( __FILE__ ) ) );
-
-/* Load classes */
-include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'includes/metabox-class.php' );
-include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'includes/settings-class.php' );
 
 /* Portfolio */
 EJO_Portfolio::init();
-
-/* Metabox */
-EJO_Portfolio_Metabox::init();
-
-/* Settings */
-EJO_Portfolio_Settings::init();
 
 /**
  *
@@ -36,8 +22,8 @@ final class EJO_Portfolio
 	/* Version number of this plugin */
 	public static $version = '0.2';
 
-	/* Holds the instance of this class. */
-	private static $_instance = null;
+    /* Store the slug of this plugin */
+    public static $slug = 'ejo-base';
 
 	/* Store post type */
 	public static $post_type = 'portfolio_project';
@@ -54,39 +40,54 @@ final class EJO_Portfolio
 	/* Stores the directory URI for this plugin. */
 	public static $uri;
 
-	/* Plugin setup. */
-	protected function __construct() 
-	{
-		/* Load Helper Functions */
-        add_action( 'plugins_loaded', array( $this, 'helper_functions' ), 1 );
+	/* Holds the instance of this class. */
+    private static $_instance = null;
 
-		/* Add Theme Features */
-        add_action( 'after_setup_theme', array( $this, 'theme_features' ) );
-
-		/* Register Post Type */
-		add_action( 'init', array( $this, 'register_portfolio_post_type' ) );
-	}
-
-    /* Add helper functions */
-    public function helper_functions() 
+    /* Only instantiate once */
+    public static function init() 
     {
-        /* Use this function to filter custom theme support with arguments */
-        include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'includes/theme-support-arguments.php' );
-
-        /* Helper functions */
-		include_once( EJO_PORTFOLIO_PLUGIN_DIR . 'includes/helpers.php' );
+        if ( !self::$_instance )
+            self::$_instance = new self;
+        return self::$_instance;
     }
 
+    //* No cloning
+    private function __clone() {}
 
-    /* Add Features */
-    public function theme_features() 
-    {	
-		/* Allow arguments to be passed for theme-support */
-		add_filter( 'current_theme_supports-ejo-portfolio', 'ejo_theme_support_arguments', 10, 3 );
-	}
+    /* Plugin setup. */
+    private function __construct() 
+    {
+        //* Setup common plugin stuff
+        self::setup();
+
+        //* Immediatly include helpers
+        self::helpers();
+
+		/* Register Post Type */
+		add_action( 'init', array( 'EJO_Portfolio', 'register_portfolio_post_type' ) );
+    }
+
+    
+    /* Defines the directory path and URI for the plugin. */
+    public static function setup() 
+    {
+        self::$dir = plugin_dir_path( __FILE__ );
+        self::$uri = plugin_dir_url( __FILE__ );
+
+		/* Load classes */
+		include_once( self::$dir . 'includes/metabox-class.php' );
+		include_once( self::$dir . 'includes/settings-class.php' );
+    }
+
+    /* Add helper functions */
+    public static function helpers() 
+    {
+        /* Helper functions */
+		include_once( self::$dir . 'includes/helpers.php' );
+    }
 
 	/* Register Post Type */
-	public function register_portfolio_post_type() 
+	public static function register_portfolio_post_type() 
 	{
 		/* Get portfolio settings */
 		$portfolio_settings = get_option( 'portfolio_settings', array() );
@@ -124,8 +125,7 @@ final class EJO_Portfolio
 					'editor',
 					'excerpt',
 					'author',
-					'thumbnail',
-					'custom-header'
+					'thumbnail'
 				),
 
 				/* Labels used when displaying the posts. */
@@ -146,14 +146,6 @@ final class EJO_Portfolio
 				)
 			)
 		);
-	}
-
-	/* Returns the instance. */
-	public static function init() 
-	{
-		if ( !self::$_instance )
-			self::$_instance = new self;
-		return self::$_instance;
 	}
 }
 
